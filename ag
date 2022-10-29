@@ -1,0 +1,37 @@
+#!/bin/sh
+
+# Author:  Cyril Harvey
+# Date:    10-16-2022
+# Version: 0.1
+# Purpose: Automate the creation of blog posts from PDF friendly .ms files to .md for hugo to use
+# Add websitePath and webServer to fit with your use
+
+# Captures/Init the simple variables
+date=$(date +%Y-%m-%d)
+filename=$(echo $1|sed "s/.ms/.md/")
+title=$(sed -n '2p' $1)
+# websitePath=
+contentPath="${websitePath}content/blog/"
+# webServer=
+
+# Gets relevant tags from user
+read -p "Enter tags:" tag
+tags=$(perl -pe 's/"[^"]*"(*SKIP)(*F)|(\S+)/"\1",/g; s/,$//; s/"(?= *")/",/g' <<< "$tag")
+
+# Using the template "agTemp.txt" fills in the fields using data from .ms file
+sed "s/TITLE/$title/g; s/DATE/$date/g" /usr/bin/agTemp > $filename
+
+# Removes trims the .ms file to just the content, and then appends it to the .md file created above
+sed "1,5d; /.PP/d; s/\"//g" $1|sed "s/$/\n/g" >> $filename
+
+# Adds tags to the header of the .md file
+sed -i "s/TAGS/$tag/g" $filename
+
+# Moves the translated file into the website directory
+mv $filename $contentPath
+
+# Runs Hugo on the site directory to generate a new static site
+hugo --quiet -s $websitePath
+
+# Pushes the new site to the server
+rsync -rqtzP $websitePath $webServer
