@@ -6,9 +6,6 @@ title=$(sed -n '2p' $1)
 
 read -p "Enter tags:" tag
 tags=$(perl -pe 's/"[^"]*"(*SKIP)(*F)|(\S+)/"\1",/g; s/,$//; s/"(?= *")/",/g' <<< "$tag")
-echo $tags
 sed "s/TITLE/$title/g; s/DATE/$date/g" /usr/local/agTemp > $filename
-echo "11"
 sed "1,5d; /.PP/d; s/\"//g" $1|sed "s/$/\n/g" >> $filename
-echo "13"
 sed -i '' "s/TAGS/$tags/g" $filename
