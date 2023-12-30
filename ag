@@ -1,11 +1,16 @@
 #!/bin/sh
 
+if [ $# -eq 0 ]; then
+ echo "No target file found..."
+ exit 1
+fi
+
 date=$(date +%Y-%m-%d)
 filename=$(echo $1|sed "s/.ms/.md/")
 title=$(sed -n '2p' $1)
 
 read -p "Enter tags:" tag
 tags=$(perl -pe 's/"[^"]*"(*SKIP)(*F)|(\S+)/"\1",/g; s/,$//; s/"(?= *")/",/g' <<< "$tag")
-sed "s/TITLE/$title/g; s/DATE/$date/g" /usr/local/agTemp > $filename
+sed "s/TITLE/$title/g; s/DATE/$date/g" /usr/local/bin/agTemp > $filename
 sed "1,5d; /.PP/d; s/\"//g" $1|sed "s/$/\n/g" >> $filename
 sed -i '' "s/TAGS/$tags/g" $filename
